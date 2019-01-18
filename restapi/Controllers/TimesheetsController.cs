@@ -17,6 +17,7 @@ namespace restapi.Controllers
             return Database
                 .All
                 .OrderBy(t => t.Opened);
+        
         }
 
         [HttpGet("{id}")]
@@ -51,6 +52,51 @@ namespace restapi.Controllers
             Database.Add(timecard);
 
             return timecard;
+        }
+        
+        [HttpDelete("{id}/delete")]
+        [Produces(ContentTypes.Timesheet)]
+        [ProducesResponseType(typeof(Timecard), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(InvalidStateError), 409)]
+
+        public IActionResult Delete(string id)
+        {
+            var timecard = Database.Find(id);
+            if (timecard!=null) {
+            //var entered = new Entered() { Resource = resource.Resource };
+                if (timecard.Status == TimecardStatus.Draft ){
+                    var transition = timecard.Transitions
+                                            .Where(t => t.TransitionedTo == TimecardStatus.Draft)
+                                            .OrderByDescending(t => t.OccurredAt)
+                                            .FirstOrDefault(); 
+                    Database.Remove(timecard);
+                    return Ok(transition);
+                
+                
+                }
+
+                else if (timecard.Status == TimecardStatus.Cancelled){
+                    var transition = timecard.Transitions
+                                            .Where(t => t.TransitionedTo == TimecardStatus.Cancelled)
+                                            .OrderByDescending(t => t.OccurredAt)
+                                            .FirstOrDefault();  
+                    Database.Remove(timecard);
+                    return Ok(transition);
+                }
+
+                else {
+                    return StatusCode(409, new MissingTransitionError() {});
+                }
+            }
+            else {
+                return NotFound();
+            }
+            //timecard.Transitions.Remove(new Transition(entered));
+
+            //Database.Remove(timecard);
+
+            //return timecard;
         }
 
         [HttpGet("{id}/lines")]
@@ -101,6 +147,33 @@ namespace restapi.Controllers
             }
         }
         
+        [HttpPost("{id}/lines/{lineId}")]
+        public IActionResult Replace(string id, string lineId, [FromBody] TimecardLine newTimecard)
+        {
+            Timecard timecardReturn = Database.Find(id);r
+
+            // if (timecardReturn != null)
+            // {
+            //     if (timecardReturn.Status != TimecardStatus.Draft)
+            //     {
+            //         return StatusCode(409, new InvalidStateError() { });
+            //     }
+
+        
+
+            //     return Ok();
+            // }
+            // else
+            // {
+            //     return NotFound();
+            // }
+        
+        //     Timecard matchtimecard = Database.Find(TimecardIdentity);
+        
+        // return Ok();
+
+      
+
         [HttpGet("{id}/transitions")]
         [Produces(ContentTypes.Transitions)]
         [ProducesResponseType(typeof(IEnumerable<Transition>), 200)]

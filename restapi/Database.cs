@@ -33,5 +33,29 @@ namespace restapi
         {
             Timecards.Add(timecard.Identity.Value, timecard);
         }
+        public static void Remove(Timecard timecard)
+        {   
+            Timecards.Remove(timecard.Identity.Value); 
+        }
+
+      
+        public static void Replace (string id, int lineId, TimecardLine newTimecardLine)
+        {
+
+            Timecard ourTimecard = Database.Find(id);
+
+            TimecardLine ourTimecardLine = ourTimecard.Lines[lineId]; 
+
+            TimesheetsController a; 
+
+            a.Replace()
+
+
+            // if (newTimecardLine.Hours > 0)
+
+
+            // Timecards.Add(timecard.Identity.Value, timecard);
+        }
+
     }
 }
